@@ -26,12 +26,15 @@ import operator
 import os.path
 import re
 import threading
+import urllib.request
 from datetime import timedelta, datetime
 # from itertools import izip
 from random import normalvariate, random
 from socketserver import ThreadingMixIn
 
 import dateutil.parser
+
+from client3 import N, QUERY, getDataPoint, getRatio
 
 ################################################################################
 #
@@ -334,7 +337,15 @@ class App(object):
 # Main
 
 if __name__ == '__main__':
-    if not os.path.isfile('test.csv'):
-        print("No data found, generating...")
-        generate_csv()
-    run(App())
+    for _ in iter(range(N)):
+        quotes = json.loads(urllib.request.urlopen(QUERY.format(random.random())).read())
+
+        prices = {}
+
+        for quote in quotes:
+            stock, bid_price, ask_price, price = getDataPoint(quote)
+            prices[stock] = price
+            print("Quoted %s at (bid : %s, ask : %s, price : %s)" % (stock,bid_price,ask_price,price))
+
+        print("ratio %s" % (getRatio(prices["ABC"],prices["DEF"])))
+
